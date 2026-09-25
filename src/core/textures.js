@@ -64,18 +64,31 @@ function cached(key, fn) {
 
 export function grassTexture() {
   return cached('grass', () => {
-    const c = makeCanvas(256, 256); const ctx = c.getContext('2d');
+    const S = 512;
+    const c = makeCanvas(S, S); const ctx = c.getContext('2d');
     const rand = mulberry32(11);
-    noiseFill(ctx, 256, 256, 3, [196, 200, 190], 40, 5);
-    speckle(ctx, 256, 256, rand, 2600, ['#d8dccb', '#a9b39c', '#c4c9a8', '#8f9a84', '#e6e2c6'], 1, 3, 0.55);
-    // blades
-    ctx.globalAlpha = 0.35;
-    for (let i = 0; i < 900; i++) {
-      const x = rand() * 256, y = rand() * 256;
-      ctx.strokeStyle = rand() < 0.5 ? '#eef0dc' : '#7f8c74';
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (rand() - 0.5) * 3, y - 3 - rand() * 5); ctx.stroke();
+    noiseFill(ctx, S, S, 3, [188, 194, 176], 46, 5);
+    // soil and moss patches
+    for (let i = 0; i < 70; i++) {
+      const x = rand() * S, y = rand() * S, r = 8 + rand() * 34;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      const soil = rand() < 0.45;
+      g.addColorStop(0, soil ? 'rgba(150,120,85,0.45)' : 'rgba(120,150,90,0.35)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
     }
-    ctx.globalAlpha = 1;
+    // blades in several tones
+    for (let i = 0; i < 9000; i++) {
+      const x = rand() * S, y = rand() * S;
+      const t = rand();
+      ctx.strokeStyle = t < 0.3 ? 'rgba(240,244,215,0.55)' : t < 0.65 ? 'rgba(120,140,95,0.5)' : t < 0.9 ? 'rgba(200,205,160,0.45)' : 'rgba(80,90,60,0.6)';
+      ctx.lineWidth = 1;
+      const h = 3 + rand() * 7, lean = (rand() - 0.5) * 4;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + lean, y - h); ctx.stroke();
+    }
+    // dry straw and tiny flowers
+    speckle(ctx, S, S, rand, 900, ['#efe6b8', '#d9cf92'], 1, 2, 0.6);
+    speckle(ctx, S, S, rand, 120, ['#ffffff', '#f4e27a', '#c9b6f0'], 1.5, 2.5, 0.8);
     return toTexture(c);
   });
 }

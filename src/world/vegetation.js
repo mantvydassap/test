@@ -2,68 +2,59 @@ import * as THREE from 'three';
 import { mulberry32 } from '../core/rng.js';
 import { mergeGeos, paint } from '../core/geo.js';
 import { WATER, MAP_HALF, PLAY_HALF } from './layout.js';
+import { spruceAtlas, pineAtlas, birchAtlas, toBarkUV, toFoliageUV, card, twoSidedLighting } from './foliage.js';
+
+// White vertex colour with a little jitter: the atlas supplies the real colour.
+const tint = (g, rand, j = 0.18) => paint(g, '#ffffff', j, rand);
 
 function spruceGeo(lod, rand) {
-  const seg = lod ? 5 : 8;
-  const parts = [paint(new THREE.CylinderGeometry(0.1, 0.22, 3, lod ? 4 : 6).translate(0, 1.5, 0), '#4a3526', 0.1, rand)];
-  const layers = lod ? 3 : 6;
+  const parts = [tint(toBarkUV(new THREE.CylinderGeometry(0.09, 0.22, 10, lod ? 4 : 6).translate(0, 5, 0)), rand, 0.05)];
+  const layers = lod ? 4 : 8;
   for (let i = 0; i < layers; i++) {
     const t = i / layers;
-    const r = 2.3 * (1 - t) + 0.35;
-    const h = lod ? 4.2 : 2.9;
-    const y = 1.6 + t * 8.3 + h / 2;
-    const cone = new THREE.ConeGeometry(r, h, seg, 1, !lod);
-    cone.rotateY(rand() * Math.PI);
+    const r = 2.5 * (1 - t) + 0.3;
+    const h = (lod ? 3.4 : 2.4) + (1 - t) * 0.6;
+    const y = 1.3 + t * 8.6 + h / 2;
+    const cone = new THREE.ConeGeometry(r, h, lod ? 6 : 9, 1, true);
+    cone.rotateY(rand() * Math.PI * 2);
     cone.translate(0, y, 0);
-    parts.push(paint(cone, i % 2 ? '#20391f' : '#1c3320', 0.25, rand));
+    parts.push(tint(toFoliageUV(cone), rand));
   }
+  const top = new THREE.ConeGeometry(0.35, 1.4, 5, 1, true).translate(0, 11.1, 0);
+  parts.push(tint(toFoliageUV(top), rand));
   return mergeGeos(parts);
 }
 
 function pineGeo(lod, rand) {
   const parts = [
-    paint(new THREE.CylinderGeometry(0.14, 0.26, 6.5, lod ? 4 : 6).translate(0, 3.25, 0), '#5a3a26', 0.1, rand),
-    paint(new THREE.CylinderGeometry(0.09, 0.14, 4, lod ? 4 : 5).translate(0, 8.3, 0), '#b0683c', 0.1, rand),
+    tint(toBarkUV(new THREE.CylinderGeometry(0.14, 0.26, 6.5, lod ? 4 : 6).translate(0, 3.25, 0)), rand, 0.05),
+    tint(toBarkUV(new THREE.CylinderGeometry(0.08, 0.14, 4.5, lod ? 4 : 5).translate(0, 8.5, 0)), rand, 0.05),
   ];
-  const blobs = lod ? 2 : 4;
-  for (let i = 0; i < blobs; i++) {
-    const g = new THREE.IcosahedronGeometry(1.9 - i * 0.2, 0);
-    g.scale(1.25, 0.62, 1.25);
-    g.translate((rand() - 0.5) * 1.6, 8.5 + i * 0.9, (rand() - 0.5) * 1.6);
-    parts.push(paint(g, i % 2 ? '#2f4a26' : '#3a5429', 0.3, rand));
+  const centre = new THREE.Vector3(0, 9.6, 0);
+  const n = lod ? 5 : 12;
+  for (let i = 0; i < n; i++) {
+    const a = rand() * Math.PI * 2, r = rand() * 1.4;
+    parts.push(tint(card(3.0 + rand(), 1.9 + rand() * 0.6, Math.cos(a) * r, 8.4 + rand() * 2.6, Math.sin(a) * r, rand() * Math.PI, (rand() - 0.5) * 0.9, centre), rand, 0.25));
   }
   return mergeGeos(parts);
 }
 
 function birchGeo(lod, rand) {
-  const trunk = new THREE.CylinderGeometry(0.1, 0.18, 7.5, lod ? 4 : 6, lod ? 1 : 5).translate(0, 3.75, 0);
-  const t = trunk.toNonIndexed();
-  const n = t.attributes.position.count;
-  const col = new Float32Array(n * 3);
-  const white = new THREE.Color('#e4e0d5'), black = new THREE.Color('#2b2a26');
-  for (let i = 0; i < n; i += 3) {
-    const c = rand() < 0.18 ? black : white;
-    for (let k = 0; k < 3; k++) { col[(i + k) * 3] = c.r; col[(i + k) * 3 + 1] = c.g; col[(i + k) * 3 + 2] = c.b; }
-  }
-  t.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  const parts = [t];
-  const blobs = lod ? 2 : 5;
-  for (let i = 0; i < blobs; i++) {
-    const g = new THREE.IcosahedronGeometry(1.5 + rand() * 0.5, lod ? 0 : 1);
-    g.scale(1, 1.3, 1);
-    g.translate((rand() - 0.5) * 1.8, 5.2 + i * 0.8 + rand() * 0.5, (rand() - 0.5) * 1.8);
-    parts.push(paint(g, i % 2 ? '#5f8a35' : '#6d973c', 0.3, rand));
+  const parts = [tint(toBarkUV(new THREE.CylinderGeometry(0.09, 0.17, 8, lod ? 4 : 6).translate(0, 4, 0)), rand, 0.04)];
+  const centre = new THREE.Vector3(0, 6.6, 0);
+  const n = lod ? 6 : 14;
+  for (let i = 0; i < n; i++) {
+    const a = rand() * Math.PI * 2, r = rand() * 1.3;
+    parts.push(tint(card(2.4 + rand() * 0.8, 2.6 + rand() * 0.8, Math.cos(a) * r, 5.0 + rand() * 3.6, Math.sin(a) * r, rand() * Math.PI, (rand() - 0.5) * 0.7, centre), rand, 0.22));
   }
   return mergeGeos(parts);
 }
 
 function bushGeo(rand) {
   const parts = [];
-  for (let i = 0; i < 3; i++) {
-    const g = new THREE.IcosahedronGeometry(0.6 + rand() * 0.3, 0);
-    g.scale(1, 0.8, 1);
-    g.translate((rand() - 0.5) * 0.9, 0.45 + rand() * 0.2, (rand() - 0.5) * 0.9);
-    parts.push(paint(g, '#3c5a2a', 0.35, rand));
+  const centre = new THREE.Vector3(0, 0.3, 0);
+  for (let i = 0; i < 4; i++) {
+    parts.push(tint(card(1.4 + rand() * 0.5, 1.1 + rand() * 0.4, (rand() - 0.5) * 0.5, 0.55, (rand() - 0.5) * 0.5, (i / 4) * Math.PI, 0, centre), rand, 0.3));
   }
   return mergeGeos(parts);
 }
@@ -146,8 +137,15 @@ export class Vegetation {
     // rocks: big glacial boulders get colliders
     for (const it of types.rock.items) if (it.s > 1.1) this.colliders.addTree(it.x, it.z, it.s * 0.85, it.s * 1.2, it.y - 1);
 
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0, flatShading: true });
-    this.material = mat;
+    const rockMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0, flatShading: true });
+    const leafMat = (map) => {
+      const m = twoSidedLighting(new THREE.MeshStandardMaterial({ map, vertexColors: true, roughness: 0.95, metalness: 0, alphaTest: 0.45, side: THREE.DoubleSide }));
+      m.userData.depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map, alphaTest: 0.45, side: THREE.DoubleSide });
+      return m;
+    };
+    const birchMat = leafMat(birchAtlas());
+    const mats = { spruce: leafMat(spruceAtlas()), pine: leafMat(pineAtlas()), birch: birchMat, bush: birchMat, rock: rockMat };
+    this.material = rockMat;
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
     const tilesPerSide = Math.ceil((MAP_HALF * 2) / TILE);
@@ -163,7 +161,9 @@ export class Vegetation {
         const cx = Math.floor(k / tilesPerSide) * TILE - MAP_HALF + TILE / 2;
         const cz = (k % tilesPerSide) * TILE - MAP_HALF + TILE / 2;
         const make = (geo) => {
+          const mat = mats[name];
           const m = new THREE.InstancedMesh(geo, mat, list.length);
+          if (mat.userData.depth) m.customDepthMaterial = mat.userData.depth;
           list.forEach((it, i) => {
             dummy.position.set(it.x, it.y, it.z);
             dummy.rotation.set(0, it.r, 0);

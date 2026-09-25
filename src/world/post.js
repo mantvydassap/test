@@ -16,9 +16,19 @@ const frag = /* glsl */`
       vec2 o = vec2(sin(uTime * 0.9), cos(uTime * 0.6)) * 0.012 * min(uDrunk, 1.6);
       c = mix(c, texture2D(tDiffuse, uv + o).rgb, 0.45 * min(uDrunk, 1.0));
     }
+    // soft glow around bright areas (sky, sun, lamps)
+    vec3 glow = vec3(0.0);
+    for (int i = 0; i < 12; i++) {
+      float a = float(i) * 0.5236;
+      vec2 o = vec2(cos(a), sin(a)) * (0.006 + 0.012 * mod(float(i), 2.0));
+      vec3 s = texture2D(tDiffuse, uv + o * vec2(uRes.y / uRes.x, 1.0) * 1.6).rgb;
+      glow += max(s - vec3(1.1), vec3(0.0));
+    }
+    c += glow / 12.0 * 0.55 * uGrade;
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    vec3 g = mix(vec3(l), c, 0.74);                 // desaturate
-    g *= vec3(1.02, 1.03, 0.88);                    // yellow-green cast
+    vec3 g = mix(vec3(l), c, 0.8);                  // desaturate
+    g *= vec3(1.0, 1.03, 0.92);                     // faint green cast
+    g = mix(g, g * vec3(0.92, 0.98, 1.06), smoothstep(0.35, 0.0, l)); // cool shadows
     g = g * 0.95 + vec3(0.014, 0.016, 0.012);       // lifted, milky blacks
     c = mix(c, g, uGrade);
     gl_FragColor = vec4(c, 1.0);

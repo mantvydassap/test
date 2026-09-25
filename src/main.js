@@ -13,6 +13,7 @@ import { buildWater } from './world/water.js';
 import { LightPool } from './world/lights.js';
 import { Grass } from './world/grass.js';
 import { Post } from './world/post.js';
+import { Dust } from './world/fx.js';
 import { buildVillage } from './world/village.js';
 import { Npcs } from './game/npcs.js';
 import { FIELDS, WATER } from './world/layout.js';
@@ -106,6 +107,7 @@ class Game {
     this.vegetation = new Vegetation(this.scene, this.terrain, this.colliders, q);
     this.vegetation.build([...this.home.exclusions, ...this.town.exclusions, ...this.country.exclusions]);
     this.grass = new Grass(this.scene, this.terrain, this.colliders, q);
+    this.dust = new Dust(this.scene, q === 'low' ? 40 : 90);
     await step(0.9, 'Finding the car keys');
     this.survival = new Survival(this);
     this.props = new Props(this);
@@ -545,6 +547,7 @@ class Game {
     this.sky.follow(this.camera.position);
     this.vegetation.update(this.camera.position, true);
     this.grass.update(dt, this.camera.position);
+    this.dust.update(dt, this.vehicles);
     this.water.update(dt);
     const night = 1 - this.sky.daylight;
     for (const w of this.town.windows) w.emissiveIntensity = night > 0.35 ? 0.8 : 0;
