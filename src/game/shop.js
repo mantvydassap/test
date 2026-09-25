@@ -89,8 +89,13 @@ export class Shop {
   update(dt) {
     const g = this.game;
     const town = g.town;
-    const open = this.isOpen();
+    let open = this.isOpen();
     const door = town.shopDoor;
+    if (!open && door.open) {
+      // never lock the player in: the door stays open until they leave
+      const [lx, lz] = town.shopBuilder.toLocal(g.player.pos.x, g.player.pos.z);
+      if (Math.abs(lx) < 6.2 && Math.abs(lz) < 4.8) open = true;
+    }
     if (door.open !== open) {
       door.open = open;
       door.collider.enabled = !open;

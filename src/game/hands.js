@@ -113,9 +113,7 @@ export class Hands {
       pc.v.body.add(g);
       this.ghost = g; this.ghostId = id;
     }
-    const K = near ? pc.constructor.ghostNear : null;
     this.ghost.traverse((o) => { if (o.isMesh) o.material = near ? ghostMats.near : ghostMats.far; });
-    void K;
   }
 
   consume(prop) {
@@ -158,13 +156,10 @@ export class Hands {
       game.ui.message(`You unpack ${items.length} item${items.length === 1 ? '' : 's'}.`);
     } else if (def.opens) {
       for (let i = 0; i < def.opens.count; i++) {
-        const id = 'plug' + (i + 1);
-        const P = this.project.parts[id];
         // pick a free plug identity
         const free = ['plug1', 'plug2', 'plug3', 'plug4'].find((k) => !this.project.parts[k].attached && !this.project.parts[k].prop);
-        const use = free || id;
-        void P;
-        const pr = this.project.spawnPartProp(use, _v.set(pos.x + (i - 1.5) * 0.06, pos.y + 0.05, pos.z));
+        if (!free) break;
+        const pr = this.project.spawnPartProp(free, _v.set(pos.x + (i - 1.5) * 0.06, pos.y + 0.05, pos.z));
         pr.vel.set((i - 1.5) * 0.3, 0.6, 0);
       }
       game.ui.message('Four spark plugs. They screw into the cylinder head.');
@@ -228,7 +223,7 @@ export class Hands {
     // ------------------------------------------------ carrying something
     if (this.carried) {
       const p = this.carried;
-      this.updateCarry(dt, input);
+      this.updateCarry(dt);
       title = p.part ? PART_BY_ID[p.type.slice(5)].name : itemDisplayName(p);
       let used = false;
       if (p.part && this.project) {
@@ -368,7 +363,6 @@ export class Hands {
         actions.push({ key: 'X', label: 'Lower the car' });
         if (X) pc.lower();
       }
-      if (pc.v.fixed && !pc.onStands) void 0;
       if (!this.toolMode && nb && t < 1) actions.push({ key: 'F', label: 'Wrench' });
       ui.prompt(title, actions, sub);
       return hit;
@@ -382,7 +376,11 @@ export class Hands {
       if (!this.toolMode) actions.push({ key: 'LMB', label: 'Pick up' });
       if (def?.use) actions.push({ key: 'E', label: def.use.verb });
       if (p.type === 'bag' || def?.opens) actions.push({ key: 'E', label: p.type === 'bag' ? 'Unpack' : 'Open the box' });
-      if (p.part) sub = `${p.mass} kg · belongs on the Ruska`;
+      if (p.part) {
+        const d = PART_BY_ID[p.type.slice(5)];
+        const onto = d.parent === 'body' ? 'the car body' : 'the ' + PART_BY_ID[d.parent].name.toLowerCase();
+        sub = `${p.mass} kg · fits onto ${onto}`;
+      }
       else if (def?.desc) sub = def.desc;
       if (input.mousePressed(0) && !this.toolMode) this.pick(p);
       else if (E) {
@@ -398,6 +396,20 @@ export class Hands {
       const v = hit.vehicle;
       const pc = this.project;
       title = v.name;
+      const upY = v.up(_v).y;
+      if (upY < 0.5 && v.vel.length() < 1.5 && !v.fixed) {
+        actions.push({ key: 'E', label: 'Heave it back onto its wheels' });
+        if (E) {
+          const yaw = v.yaw;
+          v.place(v.body.position.x, game.terrain.heightAt(v.x.x, v.x.z) + 0.6, v.body.position.z, yaw);
+          game.survival.apply({ fatigue: 12, stress: 6, dirt: 8 });
+          game.survival.advance(0.25, { working: 1 });
+          game.audio.play('thud', { pos: v.x });
+          game.ui.message('With a lot of swearing, you get it back on its wheels.');
+        }
+        ui.prompt(title, actions, 'It is lying on its side');
+        return hit;
+      }
       if (v.id === 'van' && hit.zone === 'rear') {
         actions.push({ key: 'E', label: v.rearDoorsOpen ? 'Close the rear doors' : 'Open the rear doors' });
         if (E) v.toggleRear();
@@ -431,7 +443,7 @@ export class Hands {
     return hit;
   }
 
-  updateCarry(dt, input) {
+  updateCarry(dt) {
     const p = this.carried;
     const game = this.game;
     const cam = game.camera;
@@ -452,7 +464,6 @@ export class Hands {
     this.carryVel.subVectors(p.pos, this.prevCarry).divideScalar(Math.max(dt, 1e-3));
     _q.setFromAxisAngle(UP, game.player.yaw + this.carryYaw);
     p.quat.slerp(_q, 1 - Math.exp(-10 * dt));
-    void input;
   }
 
   pour(p, tgt, dt) {

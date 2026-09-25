@@ -112,7 +112,6 @@ export class Player {
     }
     if (this.underwater > 18) { game.die('drown'); return; }
 
-    const prevY = this.pos.y;
     this.pos.addScaledVector(this.vel, dt);
     // walls, trees, vehicles
     const stepH = 0.42;
@@ -177,7 +176,6 @@ export class Player {
         game.props.wake(p);
       }
     }
-    void prevY;
   }
 
   pushVehicles() {

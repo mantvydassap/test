@@ -457,6 +457,7 @@ export class Vehicle {
       else if (eng.temp > 128) stall = 'The engine overheated';
       else if (eng.wear >= 100) stall = 'The engine seized';
       else if (!eng.ignition) stall = 'off';
+      else if (this.x.y < WATER - 0.1) stall = 'Water got into the engine';
       else { const cs = this._canStart || this.canStart(); if (!cs.ok) stall = cs.reason; }
       if (stall) {
         eng.running = false;
@@ -547,23 +548,26 @@ export class Vehicle {
   // Driver controls (player).
   drive(input, dt, settings) {
     const eng = this.engine;
-    // ignition: tap I toggles key, hold I cranks
+    // ignition: tap I switches the key on/off, hold I cranks the starter
+    const game = this.game;
     if (input.wasPressed('KeyI')) {
       this._iHeld = 0;
-      if (eng.running) { eng.ignition = false; eng.running = false; eng.stallCause = 'off'; this._iConsumed = true; }
-      else if (!eng.ignition) { eng.ignition = true; this._iConsumed = false; this.game.audio.play('switch'); }
-      else this._iConsumed = false;
+      this._iWasRunning = eng.running;
+      this._iWasOn = eng.ignition;
+      if (!eng.ignition) { eng.ignition = true; game.audio.play('switch'); }
     }
-    if (input.isDown('KeyI') && !eng.running && eng.ignition && !this._iConsumed) {
+    if (input.isDown('KeyI')) {
       this._iHeld = (this._iHeld || 0) + dt;
-      if (this._iHeld > 0.25) this.crank(dt);
+      if (!this._iWasRunning && !eng.running && this._iHeld > 0.2) this.crank(dt);
+      else if (eng.running) eng.cranking = false;
     } else if (eng.cranking) {
       eng.cranking = false;
+      eng.crankT = 0;
     }
-    if (input.wasReleased('KeyI') && !eng.running && eng.ignition && (this._iHeld || 0) <= 0.25 && !this._iConsumed && this._wasOn) {
-      eng.ignition = false; this.game.audio.play('switch');
+    if (input.wasReleased('KeyI') && (this._iHeld || 0) <= 0.25) {
+      if (this._iWasRunning) { eng.running = false; eng.ignition = false; eng.stallCause = 'off'; game.audio.play('switch'); }
+      else if (this._iWasOn) { eng.ignition = false; game.audio.play('switch'); }
     }
-    this._wasOn = eng.ignition;
 
     const auto = settings.autoGear;
     const fwdSpeed = this.vel.dot(this.forward(_v1));

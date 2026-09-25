@@ -89,15 +89,20 @@ export function createVan(game) {
   const add = (geo, mat, x, y, z, rx = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.x = rx; m.castShadow = true; m.receiveShadow = true; v.body.add(m); return m; };
   // body shell: floor, sides, roof, front, rear (hollow so the cab has an interior)
   add(boxGeo(1.8, 0.1, 4.35), M.darkMetal, 0, 0.57, 0);
-  add(boxGeo(0.05, 1.35, 4.35), paint, -0.885, 1.27, 0);
-  add(boxGeo(0.05, 1.35, 4.35), paint, 0.885, 1.27, 0);
+  // side panels, leaving the cab side windows open (z -1.975..-1.025, y 1.28..1.87)
+  for (const x of [-0.885, 0.885]) {
+    add(boxGeo(0.05, 0.68, 4.35), paint, x, 0.94, 0);                 // below the window line
+    add(boxGeo(0.05, 0.67, 3.2), paint, x, 1.615, 0.575);             // cargo side, full height
+    add(boxGeo(0.05, 0.67, 0.2), paint, x, 1.615, -2.075);            // A pillar
+    add(boxGeo(0.05, 0.08, 0.95), paint, x, 1.91, -1.5);              // above the window
+  }
   add(boxGeo(1.8, 0.28, 4.35), paint, 0, 0.47, 0);
   add(boxGeo(1.78, 0.1, 4.33), paint, 0, 1.95, 0);
   add(boxGeo(1.8, 0.62, 0.06), paint, 0, 0.93, -2.16);
   add(boxGeo(1.8, 1.35, 0.06), paint, 0, 1.27, 2.16);
   // windows
   add(boxGeo(1.66, 0.64, 0.03), M.glass, 0, 1.56, -2.19);
-  for (const x of [-0.905, 0.905]) add(boxGeo(0.03, 0.58, 0.95), M.glass, x, 1.58, -1.5);
+  for (const x of [-0.89, 0.89]) add(boxGeo(0.02, 0.59, 0.95), M.glass, x, 1.575, -1.5);
   // cab window cut lines & pillars
   add(boxGeo(1.8, 0.06, 0.08), paint, 0, 1.9, -2.17);
   // stripes

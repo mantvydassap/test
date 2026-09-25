@@ -15,7 +15,7 @@ export const CONTROLS = [
   ]],
   ['Driving', [
     ['Ignition on / off', 'Tap I'], ['Start the engine', 'Hold I'], ['Throttle / brake', 'W / S'], ['Steer', 'A / D'],
-    ['Handbrake', 'Space'], ['Gear up / down', 'R / F'], ['Headlights', 'L'], ['Horn', 'H'], ['Camera', 'C'], ['Get out', 'E'],
+    ['Handbrake', 'Space'], ['Gear up / down', 'R / F'], ['Headlights', 'L'], ['Horn', 'H'], ['Radio (van)', 'N'], ['Camera', 'C'], ['Get out', 'E'],
   ]],
 ];
 
@@ -140,7 +140,7 @@ export class UI {
   showCluster(v) {
     this.el.cluster.hidden = !v;
     this.el.drivehelp.hidden = !v;
-    if (v) this.el.drivehelp.innerHTML = `<kbd>I</kbd> ignition · hold to start<br><kbd>R</kbd>/<kbd>F</kbd> gears · <kbd>Space</kbd> handbrake<br><kbd>L</kbd> lights · <kbd>C</kbd> camera · <kbd>E</kbd> get out`;
+    if (v) this.el.drivehelp.innerHTML = `<kbd>I</kbd> key on/off · hold <kbd>I</kbd> to start<br><kbd>R</kbd>/<kbd>F</kbd> gears · <kbd>Space</kbd> handbrake<br><kbd>L</kbd> lights · <kbd>N</kbd> radio · <kbd>C</kbd> camera · <kbd>E</kbd> get out`;
   }
 
   drawCluster(v) {
@@ -219,6 +219,7 @@ export class UI {
     for (const d of PART_DEFS) (groups[d.group] = groups[d.group] || []).push(d);
     const e = pc.v.engine;
     let html = `<h3>Ruska 1300</h3><div class="sub">Workshop notes · ${pc.onStands ? 'on jack stands' : 'on its wheels'}${pc.inspected ? ' · <b>road legal</b>' : ''}</div>`;
+    html += `<h5>Next</h5><ol class="next">${pc.nextSteps().map((t) => `<li>${esc(t)}</li>`).join('')}</ol>`;
     for (const [g, list] of Object.entries(groups)) {
       html += `<h5>${esc(g)}</h5>`;
       for (const d of list) {

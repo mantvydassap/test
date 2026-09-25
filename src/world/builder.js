@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { boxGeo } from '../core/geo.js';
+import { boxGeo, mergeGeos } from '../core/geo.js';
 import { materials } from './materials.js';
 
 // Places boxes in a building's local frame and registers matching colliders.
@@ -16,6 +16,47 @@ export class Builder {
     this.c = Math.cos(rotY); this.s = Math.sin(rotY);
     this.M = materials();
     this.colliderBoxes = [];
+    (game.builders || (game.builders = [])).push(this);
+  }
+
+  // Merge static, non-interactive child meshes by material to cut draw calls.
+  finalize() {
+    const buckets = new Map();
+    const remove = [];
+    for (const m of this.group.children) {
+      if (!m.isMesh || m.isInstancedMesh || m.children.length) continue;
+      if (m.userData.target || m.userData.noMerge) continue;
+      m.updateMatrix();
+      const mats = Array.isArray(m.material) ? m.material : [m.material];
+      const geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+      const groups = Array.isArray(m.material) && m.geometry.groups.length ? m.geometry.groups : [{ start: 0, count: Infinity, materialIndex: 0 }];
+      // after toNonIndexed, group ranges index the vertex list directly
+      for (const gr of groups) {
+        const mat = mats[gr.materialIndex];
+        if (!mat) continue;
+        const n = geo.attributes.position.count;
+        const start = gr.start, count = Math.min(gr.count, n - start);
+        const sub = new THREE.BufferGeometry();
+        for (const name of ['position', 'normal', 'uv']) {
+          const a = geo.attributes[name];
+          if (!a) continue;
+          sub.setAttribute(name, new THREE.BufferAttribute(a.array.slice(start * a.itemSize, (start + count) * a.itemSize), a.itemSize));
+        }
+        sub.applyMatrix4(m.matrix);
+        const key = mat.uuid + (m.castShadow ? 's' : '') + (m.receiveShadow ? 'r' : '');
+        if (!buckets.has(key)) buckets.set(key, { mat, cast: m.castShadow, recv: m.receiveShadow, geos: [] });
+        buckets.get(key).geos.push(sub);
+      }
+      remove.push(m);
+    }
+    for (const m of remove) this.group.remove(m);
+    for (const b of buckets.values()) {
+      const merged = mergeGeos(b.geos);
+      if (!b.mat.vertexColors) merged.deleteAttribute('color');
+      const mesh = new THREE.Mesh(merged, b.mat);
+      mesh.castShadow = b.cast; mesh.receiveShadow = b.recv;
+      this.group.add(mesh);
+    }
   }
 
   toWorld(lx, ly, lz, out = new THREE.Vector3()) {

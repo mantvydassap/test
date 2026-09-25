@@ -11,6 +11,7 @@ import { buildHome, updateHome } from './world/home.js';
 import { buildTown, buildCountryside } from './world/town.js';
 import { buildWater } from './world/water.js';
 import { LightPool } from './world/lights.js';
+import { Grass } from './world/grass.js';
 import { FIELDS, WATER } from './world/layout.js';
 import { Interact } from './game/interact.js';
 import { Props } from './game/props.js';
@@ -27,7 +28,6 @@ import { ITEMS } from './game/items.js';
 import { UI } from './ui/ui.js';
 import { saveGame, loadGame, saveSummary, applySave } from './game/save.js';
 import { deathStory, winStory } from './game/news.js';
-import { clamp } from './core/math.js';
 
 const SETTINGS_KEY = 'midsummer-motors:settings';
 const BOOT_KEY = 'midsummer-motors:boot';
@@ -96,9 +96,11 @@ class Game {
     this.home = buildHome(this);
     this.town = buildTown(this);
     this.country = buildCountryside(this);
+    for (const b of this.builders) b.finalize();
     await step(0.78, 'Planting the forest');
     this.vegetation = new Vegetation(this.scene, this.terrain, this.colliders, q);
     this.vegetation.build([...this.home.exclusions, ...this.town.exclusions, ...this.country.exclusions]);
+    this.grass = new Grass(this.scene, this.terrain, this.colliders, q);
     await step(0.9, 'Finding the car keys');
     this.survival = new Survival(this);
     this.props = new Props(this);
@@ -248,6 +250,7 @@ class Game {
     this.state = 'paused';
     this.input.free = false;
     this.audio.stopAllLoops();
+    if (this.audio.ctx) this.audio.ctx.suspend();
     this.ui.showChecklist(false); this.ui.showMap(false);
     this.checklistOn = false; this.mapOn = false;
     this.ui.showMenu({ hasSave: saveSummary(), paused: true });
@@ -255,6 +258,7 @@ class Game {
 
   resume() {
     this.ui.hideMenu();
+    this.audio.init();
     this.state = 'playing';
     this.requestLock();
   }
@@ -336,6 +340,15 @@ class Game {
     this.audio.loop('horn:' + v.id, 0);
     this.ui.showCluster(false);
     this.audio.play('door', { pos: v.x });
+    this.input.pressed.delete('KeyE');
+  }
+
+  toggleCarRadio(v) {
+    if (v.radio) { v.radio.stop(); v.radio = null; this.audio.play('switch'); return; }
+    if (v.id !== 'van') { this.ui.message('The Ruska has no radio.'); return; }
+    if (!v.engine.ignition) { this.ui.message('Turn the key first (tap I).'); return; }
+    v.radio = this.audio.startRadio(v.x);
+    this.audio.play('switch');
   }
 
   onImpact(v, imp) {
@@ -371,6 +384,7 @@ class Game {
     this.input.free = false;
     this.audio.stopAllLoops();
     this.audio.play('heartbeat');
+    setTimeout(() => { if (this.state === 'dead' && this.audio.ctx) this.audio.ctx.suspend(); }, 1500);
     if (this.player.vehicle) { this.player.vehicle.throttleIn = 0; this.player.vehicle.engine.running = false; }
     this.ui.setHudVisible(false);
     const story = deathStory(this, cause);
@@ -446,6 +460,7 @@ class Game {
       this.sky.update(21.6, this.camera.position, dt);
       this.sky.follow(this.camera.position);
       this.vegetation.update(this.camera.position, true);
+      this.grass.update(dt, this.camera.position);
       this.water.update(dt);
       updateHome(this.home, this, dt, this.time);
       this.traffic.update(dt, [], this.sky.daylight);
@@ -468,9 +483,7 @@ class Game {
     // time and needs
     const gh = dt / GAME_HOUR_SECONDS;
     const working = this.hands.toolMode ? 0.3 : 0;
-    const saunaHeat = p.mode === 'sit' ? clamp((this.home.sauna.temp - 45) / 40, 0, 1.3) : 0;
     S.advance(gh, { sprinting: p.sprinting && p.mode === 'walk', working, sauna: 0 });
-    void saunaHeat;
     const cause = S.check();
     if (cause) { this.die(cause); return; }
     if (S.fatigue >= 100 && p.mode !== 'sleep' && !this.fadeBusy) {
@@ -487,6 +500,7 @@ class Game {
       v.drive(input, dt, this.settings);
       if (input.wasPressed('KeyE')) this.exitVehicle();
       if (input.wasPressed('KeyC')) p.camMode = p.camMode === 'fp' ? 'chase' : 'fp';
+      if (input.wasPressed('KeyN')) this.toggleCarRadio(v);
       if (S.drunk > 0.3 && v.speed > 3) v.steer += Math.sin(this.time * 1.3) * S.drunk * 0.004;
       p.look(input, this.settings, dt);
       p.pos.copy(v.x); p.pos.y -= 0.5;
@@ -518,6 +532,7 @@ class Game {
     this.sky.update(S.hours, p.mode === 'drive' ? p.vehicle.x : p.pos, dt);
     this.sky.follow(this.camera.position);
     this.vegetation.update(this.camera.position, true);
+    this.grass.update(dt, this.camera.position);
     this.water.update(dt);
     const night = 1 - this.sky.daylight;
     for (const w of this.town.windows) w.emissiveIntensity = night > 0.35 ? 0.8 : 0;
@@ -527,7 +542,10 @@ class Game {
 
     // audio
     this.audio.updateListener(this.camera);
-    for (const v of this.vehicles) v.updateSound(this.camera, p.vehicle === v && p.camMode === 'fp');
+    for (const v of this.vehicles) {
+      v.updateSound(this.camera, p.vehicle === v && p.camMode === 'fp');
+      if (v.radio) { if (!v.engine.ignition || v.engine.battery < 0.03) { v.radio.stop(); v.radio = null; } else v.radio.setPos(v.x); }
+    }
     const nearWater = Math.min(...this.terrain.lakes.map((l) => Math.max(0, this.terrain.lakeSigned(l, p.pos.x, p.pos.z))));
     const indoors = this.colliders.ceilingHeight(p.pos.x, p.pos.z, p.pos.y + 1.0) < p.pos.y + 4;
     this.audio.updateAmbience(dt, { daylight: this.sky.daylight, nearWater, indoors, hour: S.hours });

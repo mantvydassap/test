@@ -241,7 +241,7 @@ export class Terrain {
         #ifdef USE_MAP
           vec4 sampledDiffuseColor = texture2D( map, vMapUv );
           vec4 macro = texture2D( map, vMapUv * 0.137 + vec2(0.31, 0.77) );
-          sampledDiffuseColor.rgb *= mix(0.78, 1.22, macro.g);
+          sampledDiffuseColor.rgb *= mix(0.88, 1.12, macro.g);
           diffuseColor *= sampledDiffuseColor;
         #endif
       `);

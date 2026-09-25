@@ -117,7 +117,7 @@ export function buildHome(game) {
   hb.box(2.2, 0.01, 1.4, M.cloth, -3.0, FY + 0.005, -1.4, { collide: false });
   // alarm clock on nightstand
   const clock = hb.box(0.12, 0.1, 0.06, M.black, -4.9, FY + 0.55, -0.6, { collide: false });
-  hb.interact(clock, { name: 'Alarm clock', hint: (g) => g.clockText(), use: () => {} });
+  hb.interact(clock, { name: 'Alarm clock', hint: () => null, sub: (g) => g.clockText(), use: () => {} });
 
   // --- Bathroom ---
   hb.box(1.1, 0.08, 1.1, M.white, -4.75, FY + 0.04, 3.25, { collide: false });
@@ -267,6 +267,7 @@ export function buildHome(game) {
   const flagGeo = new THREE.PlaneGeometry(1.8, 1.1, 12, 4);
   flagGeo.translate(0.9, 0, 0);
   const flag = fp.mesh(flagGeo, new THREE.MeshStandardMaterial({ map: flagTex, side: THREE.DoubleSide, roughness: 0.9 }), 0.05, 8.35, 0);
+  flag.userData.noMerge = true;
   home.flag = flag;
   home.flagBase = flagGeo.attributes.position.array.slice();
 

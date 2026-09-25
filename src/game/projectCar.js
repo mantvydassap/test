@@ -689,6 +689,29 @@ export class ProjectCar {
     }
   }
 
+  // What to do next, for the workshop notes.
+  nextSteps() {
+    const e = this.v.engine;
+    const steps = [];
+    const missing = PART_DEFS.filter((d) => !this.has(d.id));
+    const fittable = missing.filter((d) => this.parentAttached(d) && !d.shop);
+    const plugsMissing = missing.some((d) => d.shop);
+    const loose = PART_DEFS.filter((d) => this.has(d.id) && this.tightness(this.parts[d.id]) < 1);
+    if (fittable.length) steps.push(`Fit the ${fittable.slice(0, 3).map((d) => d.name.toLowerCase()).join(', ')}${fittable.length > 3 ? '…' : ''}`);
+    if (plugsMissing && this.has('head')) steps.push('Buy spark plugs at the shop in Kylänmäki and screw them into the head');
+    if (loose.length) steps.push(`Tighten the bolts on the ${loose.slice(0, 3).map((d) => d.name.toLowerCase()).join(', ')}${loose.length > 3 ? '…' : ''}`);
+    if (this.has('head') && e.oil < 3) steps.push('Pour in engine oil (about 3,5 L)');
+    if (this.has('hoses') && (e.coolant || 0) < 4) steps.push('Fill the radiator with coolant');
+    if (this.has('fueltank') && e.fuel < 5) steps.push('Put fuel in the tank (jerry can or pump)');
+    if (this.has('battery') && e.battery < 0.3) steps.push('Charge the battery on the workbench');
+    if (this.onStands && this.canLower()) steps.push('Lower the car off the jack stands');
+    if (this.has('carb') && Math.abs(e.mixture - IDEAL_MIXTURE) > 0.9) steps.push('Adjust the carburettor mixture toward 14,7 : 1');
+    if (this.has('distributor') && Math.abs(e.timing - IDEAL_TIMING) > 3) steps.push(`Set the ignition timing to about ${IDEAL_TIMING}°`);
+    if (!steps.length && !this.inspected) steps.push('Drive into the inspection hall in Kylänmäki (weekdays 8–16)');
+    if (this.inspected) steps.push('The Ruska is road legal. Enjoy the summer.');
+    return steps.slice(0, 5);
+  }
+
   // ---------------------------------------------------------------- inspection checklist
   inspectionReport() {
     const e = this.v.engine;

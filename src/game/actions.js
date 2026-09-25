@@ -274,6 +274,7 @@ export class Actions {
     p.sitPos = this.home.saunaSeat.clone().add(new THREE.Vector3(0, 0.62, 0));
     p.sitReturn = p.pos.clone();
     p.pitch = -0.1;
+    g.input.pressed.delete('KeyE');
     g.ui.message(`${Math.round(this.home.sauna.temp)} °C. Look at the bucket and press E for löyly. E again to stand up.`, 4);
   }
 
@@ -318,7 +319,6 @@ export class Actions {
     // sitting in the heat
     if (g.player.mode === 'sit') {
       const heat = clamp((s.temp - 45) / 40, 0, 1.3);
-      g.survival.advance(0, {});
       this.S.stress = Math.max(0, this.S.stress - gh * 35 * heat);
       this.S.dirt = Math.max(0, this.S.dirt - gh * 70 * heat);
       this.S.thirst = Math.min(100, this.S.thirst + gh * 25 * heat);

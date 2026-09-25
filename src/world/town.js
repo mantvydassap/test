@@ -187,7 +187,10 @@ export function buildTown(game) {
     const pos = fb.toWorld(x, 1, 0);
     const p = { pos, mesh: pump };
     town.pumps.push(p);
-    const t = { name: 'Fuel pump · 1,95 mk/L', hint: (g) => g.actions.pumpHint(p), use: (g) => g.actions.pumpUse(p) };
+    const t = {
+      name: 'Fuel pump · 1,95 mk/L', hint: (g) => g.actions.pumpHint(p), use: (g) => g.actions.pumpUse(p),
+      carryHint: (g, item) => (item.type === 'jerrycan' ? 'Fill the jerry can' : null), carryUse: (g) => g.actions.pumpUse(p),
+    };
     pump.traverse((o) => { if (o.isMesh) fb.interact(o, t); });
   }
 
