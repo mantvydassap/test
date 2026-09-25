@@ -10,7 +10,9 @@ keep yourself fed, rested and sane, and get it through the vehicle inspection in
 
 ## Play
 
-Open `dist/index.html` in a desktop browser (Chrome, Edge, Firefox or Safari with WebGL 2).
+**Download:** `dist/MidsummerMotors.zip` — unzip and double-click `MidsummerMotors.html`. It works fully offline.
+
+Or open `dist/index.html` in a desktop browser (Chrome, Edge, Firefox or Safari with WebGL 2).
 The page loads Three.js from the jsDelivr CDN, so the first load needs an internet connection.
 A mouse and keyboard are required.
 

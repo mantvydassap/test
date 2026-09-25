@@ -24,3 +24,17 @@ mkdirSync('dist', { recursive: true });
 writeFileSync('dist/index.html', doc);
 writeFileSync('dist/artifact.html', body);
 console.log(`built dist/index.html (${(doc.length / 1024).toFixed(0)} KB)`);
+
+// Offline build: Three.js bundled in, no CDN needed. Opens straight from disk.
+const off = await build({
+  entryPoints: ['src/main.js'], bundle: true, format: 'esm', minify: true, write: false,
+  target: 'es2020', legalComments: 'none',
+});
+const offJs = off.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
+const offBody = readFileSync('src/body.html', 'utf8')
+  .replace(/<script type="importmap">.*<\/script>\n/, '')
+  .replace('/*CSS*/', () => css)
+  .replace('/*JS*/', () => offJs);
+const offDoc = readFileSync('src/index.html', 'utf8').replace('<!--BODY-->', () => offBody.replace(/^<title>.*<\/title>\n/, ''));
+writeFileSync('dist/MidsummerMotors-offline.html', offDoc);
+console.log(`built dist/MidsummerMotors-offline.html (${(offDoc.length / 1024).toFixed(0)} KB)`);
