@@ -12,6 +12,9 @@ import { buildTown, buildCountryside } from './world/town.js';
 import { buildWater } from './world/water.js';
 import { LightPool } from './world/lights.js';
 import { Grass } from './world/grass.js';
+import { Post } from './world/post.js';
+import { buildVillage } from './world/village.js';
+import { Npcs } from './game/npcs.js';
 import { FIELDS, WATER } from './world/layout.js';
 import { Interact } from './game/interact.js';
 import { Props } from './game/props.js';
@@ -71,6 +74,7 @@ class Game {
     this.scene.environmentIntensity = 0.55;
     this.camera = new THREE.PerspectiveCamera(this.settings.fov, window.innerWidth / window.innerHeight, 0.05, 2600);
     this.scene.add(this.camera);
+    this.post = new Post(this.renderer);
     this.lights = new LightPool(this.scene, q === 'low' ? 2 : 3, 2);
     window.addEventListener('resize', () => this.resize());
 
@@ -96,6 +100,7 @@ class Game {
     this.home = buildHome(this);
     this.town = buildTown(this);
     this.country = buildCountryside(this);
+    this.village = buildVillage(this);
     for (const b of this.builders) b.finalize();
     await step(0.78, 'Planting the forest');
     this.vegetation = new Vegetation(this.scene, this.terrain, this.colliders, q);
@@ -107,6 +112,7 @@ class Game {
     this.player = new Player(this);
     this.hands = new Hands(this);
     this.actions = new Actions(this);
+    this.npcs = new Npcs(this, this.village);
     this.shop = new Shop(this);
     this.inspection = new Inspection(this);
     this.van = createVan(this);
@@ -145,11 +151,16 @@ class Game {
     this.van.engine.ignition = false;
   }
 
+  renderFrame() {
+    this.post.render(this.scene, this.camera, this.time, this.survival ? this.survival.drunk : 0);
+  }
+
   resize() {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    if (this.post) this.post.resize();
   }
 
   applySettings() {
@@ -371,7 +382,7 @@ class Game {
   // ---------------------------------------------------------------- death & win
   snapshot() {
     try {
-      this.renderer.render(this.scene, this.camera);
+      this.renderFrame();
       return this.renderer.domElement.toDataURL('image/jpeg', 0.72);
     } catch (e) { return null; }
   }
@@ -422,7 +433,7 @@ class Game {
       console.error(e);
     }
     const t1 = performance.now();
-    if (!this.skipRender) this.renderer.render(this.scene, this.camera);
+    if (!this.skipRender) this.renderFrame();
     else this.scene.updateMatrixWorld();
     this.perf = { update: t1 - t0, render: performance.now() - t1 };
     this.input.endFrame();
@@ -527,6 +538,7 @@ class Game {
     // world
     this.actions.update(dt, gh);
     this.shop.update(dt);
+    this.npcs.update(dt, gh);
     updateHome(this.home, this, dt, this.time);
     p.updateCamera(this.camera, dt);
     this.sky.update(S.hours, p.mode === 'drive' ? p.vehicle.x : p.pos, dt);
@@ -537,6 +549,7 @@ class Game {
     const night = 1 - this.sky.daylight;
     for (const w of this.town.windows) w.emissiveIntensity = night > 0.35 ? 0.8 : 0;
     for (const w of this.country.windows) w.emissiveIntensity = night > 0.35 ? 0.8 : 0;
+    for (const w of this.village.windows) w.emissiveIntensity = night > 0.35 || this.npcs.barOpen() ? 0.8 : 0;
     this.town.lampHeadMat.emissiveIntensity = night > 0.4 ? 3 : 0;
     this.lights.update(this.camera.position, this.headlightCar());
 
@@ -553,12 +566,14 @@ class Game {
     this.audio.loop('wind', p.mode === 'drive' ? Math.min(0.25, p.vehicle.speed / 110) : 0, { speed: p.mode === 'drive' ? p.vehicle.speed : 0 });
 
     // HUD
-    if (p.mode === 'drive') this.ui.drawCluster(p.vehicle);
+    for (const v of this.vehicles) {
+      if (!v.dash) continue;
+      const close = v === p.vehicle || v.x.distanceToSquared(this.camera.position) < 36;
+      v.dash.t -= dt;
+      if (close && v.dash.t <= 0) { v.dash.t = v === p.vehicle ? 0.05 : 0.5; this.ui.drawCluster(v, v.dash.canvas); v.dash.tex.needsUpdate = true; }
+    }
     const under = this.camera.position.y < WATER - 0.02 && this.terrain.heightAt(this.camera.position.x, this.camera.position.z) < WATER;
     this.ui.el.underwater.hidden = !under;
-    const blur = S.drunk > 0.4 ? Math.min(2.5, (S.drunk - 0.4) * 1.3) : 0;
-    const want = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : '';
-    if (this.renderer.domElement.style.filter !== want) this.renderer.domElement.style.filter = want;
     if (this.camera.fov !== this.settings.fov + (S.drunk > 0.5 ? Math.sin(this.time * 0.7) * S.drunk * 2 : 0)) {
       this.camera.fov = this.settings.fov + (S.drunk > 0.5 ? Math.sin(this.time * 0.7) * S.drunk * 2 : 0);
       this.camera.updateProjectionMatrix();

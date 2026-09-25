@@ -93,7 +93,7 @@ export class Grass {
         if (T.roadEdge(x, z) < 1.4) continue;
         const y = T.heightAt(x, z);
         if (y < WATER + 0.3) continue;
-        if (C.surfaceHeight(x, z, y + 5) > y + 0.05) continue; // floors, decks
+        if (C.surfaceHeight(x, z, y + 5) > y + 0.002) continue; // floors, decks
         const nrm = T.normalAt(x, z);
         if (nrm.y < 0.82) continue;
         const fd = T.forestDensity(x, z);

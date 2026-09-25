@@ -37,6 +37,10 @@ npm run dev          # builds and serves dist/ on http://localhost:8080
   stones, or cool off in the lake. Neglect any of it and the local paper prints your obituary.
 - **The village.** Drive the van to Kylänmäki for groceries, spark plugs, oil and coolant at
   Teppo's shop, fill up at the pump, and book the inspection (weekdays 8–16, 120 mk).
+- **The villagers.** Raimo pours beer and kossu at the Baari (open 12–02) and Jaska, the
+  regular, rambles at his table (bring him a beer). Veikko at the Korjaamo tunes, tightens and
+  overhauls the car for a fee. Mummo, your grandmother, pays you to drive her to church — slowly.
+  Heikki the farmer, an old man fishing at Haukilampi and someone waiting for the bus round it out.
 - **Money.** You start with 850 mk. Split firewood at the woodshed and ring Heikki to sell it.
   Return empty beer bottles for the deposit.
 - **The world.** About 1.5 km × 1.5 km of lakes, birch and spruce forest, gravel roads, a

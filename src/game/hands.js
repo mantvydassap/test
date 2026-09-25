@@ -226,7 +226,13 @@ export class Hands {
       this.updateCarry(dt);
       title = p.part ? PART_BY_ID[p.type.slice(5)].name : itemDisplayName(p);
       let used = false;
-      if (p.part && this.project) {
+      // handing the item to someone / using it on a fixed object takes priority
+      const giveHint = hit && hit.kind === 'target' && hit.target.carryHint ? hit.target.carryHint(game, p) : null;
+      if (giveHint) {
+        this.hideGhost();
+        actions.push({ key: 'E', label: giveHint });
+        if (E) { hit.target.carryUse(game, p); used = !this.carried; }
+      } else if (p.part && this.project) {
         const camDir = _d.set(0, 0, -1).applyQuaternion(cam.quaternion).clone();
         const nm = this.project.nearMount(p, cam.position, camDir);
         if (nm) {
@@ -259,10 +265,6 @@ export class Hands {
           } else if (tgt && tgt.room <= 0.01) { sub = 'It is already full'; this.pouring = false; }
           else if (amt <= 0.01) { sub = 'Empty'; this.pouring = false; }
           else this.pouring = false;
-          if (def.liquid === 'fuel' && hit && hit.kind === 'target' && hit.target.carryHint) {
-            const h = hit.target.carryHint(game, p);
-            if (h) { actions.push({ key: 'E', label: h }); if (E) hit.target.carryUse(game, p); }
-          }
         } else if (p.type === 'rebuildkit') {
           if (hit && hit.kind === 'part' && hit.part.def.id === 'block') {
             actions.push({ key: 'E', label: 'Rebuild the engine' });

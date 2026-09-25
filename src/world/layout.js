@@ -14,8 +14,8 @@ export const PADS = [
   { name: 'home', x: -228, z: 200, hx: 38, hz: 34, h: 'auto', blend: 30 },
   { name: 'sauna', x: -283, z: 206, hx: 8, hz: 8, h: 1.35, blend: 10 },
   { name: 'town', x: 510, z: -365, hx: 80, hz: 80, h: 'auto', blend: 45 },
-  { name: 'farm', x: 95, z: -40, hx: 32, hz: 26, h: 'auto', blend: 30 },
-  { name: 'neighbour1', x: 330, z: 520, hx: 18, hz: 16, h: 'auto', blend: 20 },
+  { name: 'farm', x: 35, z: -120, hx: 32, hz: 26, h: 'auto', blend: 30 },
+  { name: 'neighbour1', x: 340, z: 452, hx: 18, hz: 16, h: 'auto', blend: 20 },
   { name: 'neighbour2', x: -520, z: 505, hx: 18, hz: 16, h: 'auto', blend: 20 },
   { name: 'neighbour3', x: 575, z: -60, hx: 16, hz: 18, h: 'auto', blend: 20 },
 ];
@@ -23,7 +23,7 @@ export const PADS = [
 // Grain fields: no trees, golden colour.
 export const FIELDS = [
   { x0: 128, x1: 250, z0: -10, z1: 90, color: 0 },
-  { x0: 20, x1: 80, z0: -150, z1: -80, color: 1 },
+  { x0: 75, x1: 135, z0: -170, z1: -125, color: 1 },
   { x0: 360, x1: 470, z0: 470, z1: 560, color: 0 },
   { x0: -470, x1: -380, z0: 420, z1: 480, color: 1 },
 ];

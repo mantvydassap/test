@@ -176,6 +176,7 @@ export function createVan(game) {
   v.body.traverse((o) => { if (o.isMesh && !o.userData.vehicle) { o.userData.vehicle = v; o.userData.zone = o.position.z > 1.8 ? 'rear' : 'cab'; } });
   dash.userData.zone = 'cab';
   v.dashHeight = 1.3;
+  addDashGauges(v, new THREE.Vector3(-0.45, 1.3, -1.785), -0.2, 0.46);
   return v;
 }
 
@@ -206,4 +207,21 @@ export function makeSedanMesh(color) {
   g.userData.wheels = wheels;
   g.userData.lightMat = lm;
   return g;
+}
+
+// Instrument cluster drawn onto a canvas that lives on the car's dashboard.
+export function addDashGauges(v, pos, rotX, width) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 860; canvas.height = 300;
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.05 });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, width * 300 / 860), mat);
+  mesh.position.copy(pos);
+  mesh.rotation.x = rotX;
+  mesh.userData.vehicle = v;
+  mesh.userData.zone = 'cab';
+  v.body.add(mesh);
+  v.dash = { canvas, tex, mesh, t: 0 };
 }

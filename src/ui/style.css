@@ -33,7 +33,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--mustar
 #crosshair.active { width: 8px; height: 8px; margin: -4px 0 0 -4px; background: transparent; border: 2px solid rgba(255, 250, 235, 0.9); }
 
 #prompt { position: absolute; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); text-align: center; max-width: min(560px, 92vw); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
-#prompt .t { font-family: var(--cond); font-weight: 600; font-size: 21px; letter-spacing: 0.01em; }
+#prompt .t { font-family: var(--cond); font-weight: 600; font-size: 22px; color: #fff; letter-spacing: 0.01em; }
 #prompt .s { font-size: 14px; color: #d8d1bf; margin-top: 2px; }
 #prompt .a { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 7px; font-size: 14px; }
 #prompt .a span { display: inline-flex; align-items: center; gap: 6px; }
@@ -48,7 +48,7 @@ kbd { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 2px 
 #say { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); background: var(--panel); padding: 9px 16px; font-size: 16px; max-width: 80vw; border-radius: 2px; }
 #say b { font-family: var(--cond); color: var(--mustard); margin-right: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-size: 14px; }
 
-#stats { position: absolute; left: 18px; bottom: 16px; background: var(--panel); padding: 10px 12px 10px; width: 214px; font-family: var(--cond); }
+#stats { position: absolute; right: 18px; bottom: 16px; background: rgba(10, 10, 8, 0.38); padding: 8px 10px; width: 200px; font-family: var(--cond); text-shadow: 0 1px 2px #000; }
 #stats .row { display: grid; grid-template-columns: 60px 1fr; align-items: center; gap: 8px; height: 17px; }
 #stats .row label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 #stats .bar { height: 6px; background: rgba(255, 255, 255, 0.1); position: relative; overflow: hidden; }
@@ -59,7 +59,7 @@ kbd { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 2px 
 #stats .foot .money { color: var(--mustard); }
 @keyframes pulse { 50% { opacity: 0.45; } }
 
-#tool { position: absolute; right: 18px; bottom: 16px; font-family: var(--cond); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--panel); padding: 7px 12px; border-top: 2px solid var(--mustard); }
+#tool { position: absolute; left: 18px; bottom: 16px; font-family: var(--cond); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--panel); padding: 7px 12px; border-top: 2px solid var(--mustard); }
 #basket { position: absolute; right: 18px; top: 18px; background: var(--panel); padding: 10px 14px; min-width: 210px; font-size: 14px; }
 #basket h4 { margin: 0 0 6px; font-family: var(--cond); letter-spacing: 0.1em; text-transform: uppercase; font-size: 13px; color: var(--mustard); }
 #basket .li { display: flex; justify-content: space-between; gap: 16px; font-variant-numeric: tabular-nums; }
@@ -67,7 +67,7 @@ kbd { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 2px 
 
 #cluster { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: 430px; max-width: 94vw; }
 #cluster canvas { width: 100%; height: auto; display: block; }
-#drivehelp { position: absolute; right: 18px; bottom: 60px; font-size: 12px; color: #d8d1bf; text-align: right; line-height: 1.7; text-shadow: 0 1px 2px #000; }
+#drivehelp { position: absolute; left: 50%; transform: translateX(-50%); bottom: 22px; font-size: 12px; color: #d8d1bf; text-align: center; line-height: 1.7; text-shadow: 0 1px 2px #000; }
 
 #checklist { position: absolute; right: 18px; top: 18px; bottom: 70px; width: 340px; max-width: 90vw; overflow: auto; background: rgba(239, 232, 214, 0.96); color: #1d1b15; padding: 16px 18px; font-size: 13px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); pointer-events: auto; }
 #checklist h3 { margin: 0; font-family: var(--display); font-size: 26px; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1; }

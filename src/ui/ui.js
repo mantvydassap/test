@@ -137,14 +137,16 @@ export class UI {
   }
 
   // ---------------------------------------------------------------- driving cluster
+  // Gauges live on the dashboard now; the HUD only shows a short key reminder.
   showCluster(v) {
-    this.el.cluster.hidden = !v;
+    this.el.cluster.hidden = true;
     this.el.drivehelp.hidden = !v;
+    clearTimeout(this._dh);
+    if (v) this._dh = setTimeout(() => { this.el.drivehelp.hidden = true; }, 12000);
     if (v) this.el.drivehelp.innerHTML = `<kbd>I</kbd> key on/off · hold <kbd>I</kbd> to start<br><kbd>R</kbd>/<kbd>F</kbd> gears · <kbd>Space</kbd> handbrake<br><kbd>L</kbd> lights · <kbd>N</kbd> radio · <kbd>C</kbd> camera · <kbd>E</kbd> get out`;
   }
 
-  drawCluster(v) {
-    const c = this.el.clusterCanvas;
+  drawCluster(v, c = this.el.clusterCanvas) {
     const ctx = c.getContext('2d');
     const W = c.width, H = c.height;
     ctx.clearRect(0, 0, W, H);
@@ -281,7 +283,7 @@ export class UI {
     label('Haukilampi', 265, 260, 20, '#2f5a7a');
     label('KYLÄNMÄKI', 510, -410, 26);
     label('Koti', -228, 170, 20);
-    label('Mäkelän tila', 95, -80, 18);
+    label('Mäkelän tila', 35, -160, 18);
     label('Metsätie', -40, 40, 16, '#6b4a2a');
     label('Valtatie 13', 660, 230, 16);
     ctx.font = 'bold 30px "Big Shoulders Display", sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#8a2c20';

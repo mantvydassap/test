@@ -76,7 +76,9 @@ export class Builder {
   }
 
   box(w, h, d, mat, x, y, z, opts = {}) {
-    const geo = boxGeo(w, h, d, opts.tex ?? 1.5);
+    // text signs use a clamped texture that must span the whole face once
+    const single = !Array.isArray(mat) && mat.map && mat.map.wrapS !== THREE.RepeatWrapping;
+    const geo = single ? new THREE.BoxGeometry(w, h, d) : boxGeo(w, h, d, opts.tex ?? 1.5);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(x, y, z);
     if (opts.rot) mesh.rotation.y = opts.rot;

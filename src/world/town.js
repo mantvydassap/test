@@ -85,7 +85,7 @@ export function buildTown(game) {
   doorLeaf.castShadow = true;
   doorPivot.add(doorLeaf);
   const doorCollider = sb.collider(1.3, 2.2, 0.12, 3.25, SY + 1.1, 4.43);
-  town.shopDoor = { pivot: doorPivot, collider: doorCollider, open: true };
+  town.shopDoor = { pivot: doorPivot, collider: doorCollider, open: null }; // first update syncs door + collider
   // interior lights
   town.shopLights = [];
   for (const x of [-3, 2]) {
@@ -245,9 +245,10 @@ export function buildTown(game) {
   cb.mesh(new THREE.BoxGeometry(0.1, 1.2, 0.1), M.darkMetal, 0, 15.9, 9.4);
   cb.mesh(new THREE.BoxGeometry(0.6, 0.1, 0.1), M.darkMetal, 0, 16.0, 9.4);
   cb.box(1.6, 2.6, 0.08, M.darkWood, 0, 1.65, 11.22, { collide: false });
+  town.churchDoor = cb.toWorld(0, 0, 13);
 
   const houses = [
-    [40, -24, -1, M.yellowBoards, M.roofRed], [62, 22, 1, M.faluRed, M.roof], [-38, 22, 1, M.greenBoards, M.roof],
+    [-38, 22, 1, M.greenBoards, M.roof], [75, 30, 1, M.yellowBoards, M.roofRed],
     [-88, 20, 1, M.faluRed, M.roofRed], [85, -28, -1, M.whiteBoards, M.roof], [-30, -26, -1, M.faluRed, M.roof],
   ];
   for (const [u, v, side, wall, roof] of houses) {
@@ -328,7 +329,7 @@ export function buildCountryside(game) {
   // hay bales ("tractor eggs") in the fields
   const baleGeo = new THREE.CylinderGeometry(0.75, 0.75, 1.2, 14);
   baleGeo.rotateZ(Math.PI / 2);
-  const bales = [[150, 20], [165, 40], [190, 15], [210, 55], [232, 30], [178, 70], [385, 500], [420, 520], [450, 490], [-440, 440], [-410, 460]];
+  const bales = [[95, -150], [118, -140], [150, 20], [165, 40], [190, 15], [210, 55], [232, 30], [178, 70], [385, 500], [420, 520], [450, 490], [-440, 440], [-410, 460]];
   const bm = new THREE.InstancedMesh(baleGeo, M.hay, bales.length);
   const d = new THREE.Object3D();
   bales.forEach(([x, z], i) => {

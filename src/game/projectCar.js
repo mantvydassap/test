@@ -3,7 +3,7 @@ import { boxGeo, mergeObject } from '../core/geo.js';
 import { plateTexture, labelTexture } from '../core/textures.js';
 import { materials } from '../world/materials.js';
 import { Vehicle } from './vehicle.js';
-import { makeWheelMesh, paintMaterial, addHeadlightBeams } from './vehicleModels.js';
+import { makeWheelMesh, paintMaterial, addHeadlightBeams, addDashGauges } from './vehicleModels.js';
 import { clamp } from '../core/math.js';
 
 // The Ruska 1300: a rusty 1970s coupé that the player rebuilds from parts.
@@ -287,7 +287,6 @@ export class ProjectCar {
     add(boxGeo(1.5, 0.5, 0.04), K.dark, 0, 0.58, -0.72);         // firewall
     add(boxGeo(1.5, 0.06, 0.3), K.paint, 0, 0.87, -0.62);        // cowl
     add(boxGeo(1.44, 0.18, 0.22), K.black, 0, 0.78, -0.5);       // dashboard
-    for (const x of [-0.46, -0.26]) add(new THREE.CylinderGeometry(0.06, 0.06, 0.01, 16).rotateX(-Math.PI / 2 + 0.5), K.ceramic, x, 0.84, -0.4);
     // windshield + pillars
     const ws = add(boxGeo(1.36, 0.72, 0.02), K.glass, 0, 1.09, -0.445); ws.rotation.x = 0.955; ws.castShadow = false;
     for (const x of [-0.69, 0.69]) { const p = add(boxGeo(0.05, 0.74, 0.05), K.paint, x, 1.09, -0.445); p.rotation.x = 0.955; }
@@ -316,6 +315,7 @@ export class ProjectCar {
     body.traverse((o) => { if (o.isMesh) o.receiveShadow = true; });
     // headlight beams (only active if both headlights fitted)
     addHeadlightBeams(v, [new THREE.Vector3(-0.56, 0.6, -2.15), new THREE.Vector3(0.56, 0.6, -2.15)]);
+    addDashGauges(v, new THREE.Vector3(-0.36, 0.83, -0.385), -0.35, 0.34);
   }
 
   setPlates(text) {

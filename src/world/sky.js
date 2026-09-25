@@ -129,7 +129,7 @@ export class Sky {
     this.hemi = new THREE.HemisphereLight(0xbcd2ec, 0x4d472a, 1);
     scene.add(this.hemi);
 
-    scene.fog = new THREE.FogExp2(0xa9bccb, 0.0017);
+    scene.fog = new THREE.FogExp2(0xa9bccb, 0.0024);
     scene.background = null;
 
     // environment for reflections (car paint, water, windows)
