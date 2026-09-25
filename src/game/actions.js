@@ -166,7 +166,7 @@ export class Actions {
     const pc = this.game.project;
     const tips = [];
     const missing = pc ? Object.values(pc.parts).filter((P) => !P.attached).map((P) => P.def) : [];
-    if (pc.onStands && !pc.canLower()) tips.push('"Start from the bottom, boy. Engine block first, then everything that bolts to it."');
+    if (pc.onStands && !pc.canLower()) tips.push('"Start from the bottom, kid. Engine block first, then everything that bolts to it."');
     if (missing.some((d) => d.shop)) tips.push('"You need spark plugs. Teppo sells them at the shop in Kylänmäki."');
     if (pc.has('head') && pc.v.engine.oil < 2.5) tips.push('"Don\'t you dare start it without oil. Four litres, into the rocker cover."');
     if (pc.has('radiator') && (pc.v.engine.coolant || 0) < 3) tips.push('"The radiator is dry. Coolant from the shop."');

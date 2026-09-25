@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Builder } from './builder.js';
 import { materials, windowMaterial } from './materials.js';
-import { boxGeo, mergeGeos, paint } from '../core/geo.js';
+import { boxGeo, mergeGeos, paint, mergeObject } from '../core/geo.js';
 import { textTexture } from '../core/textures.js';
 import { makePerson } from './npc.js';
 import { ITEMS, makeItemMesh } from '../game/items.js';
@@ -152,14 +152,15 @@ export function buildTown(game) {
     tag.position.set(x, SY + ty - 0.02, z + side * 0.46);
     if (side < 0) tag.rotation.y = Math.PI;
     holder.add(tag);
-    sb.group.add(holder);
+    const merged = mergeObject(holder);
+    sb.group.add(merged);
     const target = {
       name: `${def.name} · ${fmtMoney(def.price)}`,
       hint: (g) => g.shop.isOpen() ? 'Put in basket' : null,
       use: (g) => g.shop.take(type),
     };
-    holder.traverse((o) => { if (o.isMesh) sb.interact(o, target); });
-    town.displays.push({ type, holder });
+    merged.traverse((o) => { if (o.isMesh) sb.interact(o, target); });
+    town.displays.push({ type, holder: merged });
   }
   // posters
   sb.box(0.9, 0.6, 0.02, signMat(['TARJOUS!', 'MAKKARA 8,50'], { width: 256, height: 170, bg: '#f4e36a', fg: '#a3261e', font: 'bold 44px "Big Shoulders Display", sans-serif' }), -3.2, SY + 2.5, -4.35, { collide: false, cast: false });

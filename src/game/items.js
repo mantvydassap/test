@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { boxGeo } from '../core/geo.js';
+import { boxGeo, mergeObject } from '../core/geo.js';
 import { labelTexture } from '../core/textures.js';
 import { materials } from '../world/materials.js';
 
@@ -101,7 +101,7 @@ export function makeItemMesh(type) {
     default:
       add(new THREE.BoxGeometry(hx * 2, hy * 2, hz * 2), plain);
   }
-  return g;
+  return mergeObject(g);
 }
 
 export function itemDisplayName(prop) {

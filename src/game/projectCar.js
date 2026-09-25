@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { boxGeo } from '../core/geo.js';
+import { boxGeo, mergeObject } from '../core/geo.js';
 import { plateTexture, labelTexture } from '../core/textures.js';
 import { materials } from '../world/materials.js';
 import { Vehicle } from './vehicle.js';
@@ -361,7 +361,9 @@ export class ProjectCar {
 
   buildPartMesh(id) {
     const d = PART_BY_ID[id];
-    const m = BUILD[d.build](d.buildArg);
+    const src = BUILD[d.build](d.buildArg);
+    const m = mergeObject(src);
+    if (src.userData.lens) m.userData.lensMat = src.userData.lens.material;
     m.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     return m;
   }
@@ -651,7 +653,7 @@ export class ProjectCar {
     this.beamsOn = v.lights && (this.has('lightL') || this.has('lightR')) && e.battery > 0.02;
     for (const id of ['lightL', 'lightR']) {
       const P = this.parts[id];
-      if (P.mesh && P.mesh.userData.lens) P.mesh.userData.lens.material.emissiveIntensity = v.lights && e.battery > 0.02 ? 3 : 0;
+      if (P.mesh && P.mesh.userData.lensMat) P.mesh.userData.lensMat.emissiveIntensity = v.lights && e.battery > 0.02 ? 3 : 0;
     }
     if (!this.has('steering')) v.steer = 0;
     // vibration

@@ -62,3 +62,43 @@ export function boxGeo(w, h, d, texScale = 1) {
 }
 
 export function translate(g, x, y, z) { g.translate(x, y, z); return g; }
+
+// Collapse every mesh under `root` into one mesh per material (transforms baked,
+// relative to root). Multi-material meshes are split by geometry group.
+export function mergeObject(root) {
+  root.updateMatrixWorld(true);
+  const inv = root.matrixWorld.clone().invert();
+  const buckets = new Map();
+  const m4 = new THREE.Matrix4();
+  root.traverse((m) => {
+    if (!m.isMesh || m.isInstancedMesh) return;
+    const mats = Array.isArray(m.material) ? m.material : [m.material];
+    const geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+    const groups = Array.isArray(m.material) && m.geometry.groups.length ? m.geometry.groups : [{ start: 0, count: Infinity, materialIndex: 0 }];
+    m4.multiplyMatrices(inv, m.matrixWorld);
+    for (const gr of groups) {
+      const mat = mats[gr.materialIndex];
+      if (!mat) continue;
+      const n = geo.attributes.position.count;
+      const start = gr.start, count = Math.min(gr.count, n - start);
+      const sub = new THREE.BufferGeometry();
+      for (const name of ['position', 'normal', 'uv']) {
+        const a = geo.attributes[name];
+        if (a) sub.setAttribute(name, new THREE.BufferAttribute(a.array.slice(start * a.itemSize, (start + count) * a.itemSize), a.itemSize));
+      }
+      sub.applyMatrix4(m4);
+      if (!buckets.has(mat.uuid)) buckets.set(mat.uuid, { mat, geos: [] });
+      buckets.get(mat.uuid).geos.push(sub);
+    }
+  });
+  const out = new THREE.Group();
+  out.position.copy(root.position); out.quaternion.copy(root.quaternion); out.scale.copy(root.scale);
+  for (const b of buckets.values()) {
+    const g = mergeGeos(b.geos);
+    if (!b.mat.vertexColors) g.deleteAttribute('color');
+    const mesh = new THREE.Mesh(g, b.mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    out.add(mesh);
+  }
+  return out;
+}
