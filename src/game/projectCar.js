@@ -30,7 +30,7 @@ function mats() {
     ceramic: std(0xefeee8, 0.4, 0),
     red: std(0xa3261e, 0.5, 0.1),
     chrome: new THREE.MeshStandardMaterial({ color: 0xdfe3e6, roughness: 0.15, metalness: 1 }),
-    glass: new THREE.MeshStandardMaterial({ color: 0x1c2a33, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.4 }),
+    glass: new THREE.MeshStandardMaterial({ color: 0x2a3a44, roughness: 0.04, metalness: 0.3, transparent: true, opacity: 0.62, envMapIntensity: 1.6 }),
     nutLoose: std(0xd0c89a, 0.35, 0.85),
     nutTight: std(0x5d6064, 0.5, 0.8),
     ghost: new THREE.MeshBasicMaterial({ color: 0x7fdc6a, transparent: true, opacity: 0.28, depthWrite: false }),
@@ -291,7 +291,8 @@ export class ProjectCar {
     // windshield + pillars
     const ws = add(boxGeo(1.36, 0.72, 0.02), K.glass, 0, 1.09, -0.445); ws.rotation.x = 0.955; ws.castShadow = false;
     for (const x of [-0.69, 0.69]) { const p = add(boxGeo(0.05, 0.74, 0.05), K.paint, x, 1.09, -0.445); p.rotation.x = 0.955; }
-    add(boxGeo(1.44, 0.05, 0.98), K.paint, 0, 1.32, 0.32);      // roof
+    add(boxGeo(1.44, 0.06, 0.98), K.paint, 0, 1.32, 0.32);      // roof
+    for (const x of [-0.73, 0.73]) add(boxGeo(0.03, 0.035, 1.0), K.black, x, 1.3, 0.32);   // drip rails
     const rw = add(boxGeo(1.3, 0.68, 0.02), K.glass, 0, 1.1, 1.075); rw.rotation.x = -0.94; rw.castShadow = false;
     add(boxGeo(1.4, 0.06, 0.06), K.paint, 0, 0.88, 1.38);
     // trunk well and rear panel

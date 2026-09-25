@@ -105,7 +105,7 @@ export class Player {
     } else {
       this.vel.y -= 20 * dt;
       this.underwater = 0;
-      if (input.wasPressed('Space') && this.onGround && !carried?.heavy) {
+      if (input.wasPressed('Space') && this.onGround && !(carried && carried.mass > 40)) {
         this.vel.y = 5.2;
         this.onGround = false;
       }
